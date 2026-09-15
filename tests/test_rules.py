@@ -111,3 +111,17 @@ def test_positive_case_counts():
     tp = sum(len(r["test_cases"]["true_positives"]) for r in data["rules"])
     tn = sum(len(r["test_cases"]["true_negatives"]) for r in data["rules"])
     assert (tp, tn) == (57, 61)
+
+
+def test_repo_fixtures_scan_clean_under_own_ruleset(make_scanner):
+    """Rules file and synthetic test constants must not self-trigger.
+
+    Vectors and constants are unicode-escaped at source (docs/FORMAT_SPEC.md
+    §1.6); this pins the convention so regenerating either file cannot
+    reintroduce findings against the scanner's own repository.
+    """
+    scanner = make_scanner()
+    repo_root = RULES_FILE.parent.parent
+    for rel in ("rules/secret_rules.json", "tests/synth.py"):
+        text = (repo_root / rel).read_text(encoding="utf-8")
+        assert scanner.scan_text(text, path=rel) == [], rel

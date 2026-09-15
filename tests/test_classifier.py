@@ -9,11 +9,13 @@ from __future__ import annotations
 import json
 import urllib.error
 
+from synth import SYNTH_OPENAI_KEY
+
 from epimetheus_core.classifier.base import CandidateEvidence, Verdict
 from epimetheus_core.classifier.heuristic import HeuristicClassifier
 from epimetheus_core.classifier.llm import LLMClassifier
 
-SECRET = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH"
+SECRET = SYNTH_OPENAI_KEY
 
 
 def _evidence(secret: str, **overrides) -> CandidateEvidence:

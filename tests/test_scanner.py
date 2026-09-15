@@ -7,8 +7,10 @@ import pytest
 pytest.importorskip("tree_sitter_python")
 pytest.importorskip("tree_sitter_javascript")
 
-OPENAI_KEY = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH"
-SVCACCT_KEY = "sk-svcacct-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH"
+from synth import SYNTH_OPENAI_KEY, SYNTH_SVCACCT_KEY  # noqa: E402
+
+OPENAI_KEY = SYNTH_OPENAI_KEY
+SVCACCT_KEY = SYNTH_SVCACCT_KEY
 
 
 @pytest.fixture()

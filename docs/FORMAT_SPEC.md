@@ -92,6 +92,21 @@ serialization choice only: `json.load()` yields the exact intended vectors
 Regenerating the file must preserve this convention — escape one character
 inside every vendor-prefixed token in any string value.
 
+The test suite follows the same principle for its own synthetic constants:
+they live in `tests/synth.py` with **every** character unicode-escaped, so the
+raw source contains no high-entropy run either — generic-entropy scanners
+(e.g. GitGuardian) do not need a vendor prefix to flag. Test modules import
+from `tests/synth.py` instead of inlining key-shaped literals; decoded values
+are pinned structurally by `tests/test_synth.py` (prefix, length,
+cross-constant relationships) and behaviorally by the rest of the suite.
+
+The rules file itself must scan clean under its own ruleset: escape anchor
+fragments (vendor prefixes, or rule keywords such as `system_message` or
+`instructions` immediately followed by a quote or backtick) in any vector
+that would otherwise match its own rule in raw bytes. This self-scan
+invariant is enforced by `tests/test_rules.py`
+(`test_repo_fixtures_scan_clean_under_own_ruleset`).
+
 ---
 
 ## 2. Findings format — `epimetheus.findings/v1`

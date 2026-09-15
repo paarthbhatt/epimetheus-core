@@ -7,6 +7,8 @@ import pytest
 pytest.importorskip("tree_sitter_python")
 pytest.importorskip("tree_sitter_javascript")
 
+from synth import SYNTH_OPENAI_KEY, SYNTH_OPENAI_KEY_SHORT  # noqa: E402
+
 from epimetheus_core.engines.ast_engine import (  # noqa: E402
     AstEngine,
     detect_language,
@@ -50,7 +52,7 @@ def test_is_environment_file():
 
 
 def test_python_assignment_context(engine):
-    text = 'api_key = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH"'
+    text = f'api_key = "{SYNTH_OPENAI_KEY}"'
     engine.prepare_file("f", "python", text)
     start = text.index('"') + 1
     result = engine.check("f", "python", "f.py", start, start + 10, PY_CONTEXTS)
@@ -59,7 +61,7 @@ def test_python_assignment_context(engine):
 
 
 def test_python_call_context(engine):
-    text = "client = OpenAI(api_key='sk-proj-aB1cD2eF3gH4iJ5kL')"
+    text = f"client = OpenAI(api_key='{SYNTH_OPENAI_KEY_SHORT}')"
     engine.prepare_file("f", "python", text)
     start = text.index("sk-proj")
     result = engine.check("f", "python", "f.py", start, start + 10, PY_CONTEXTS)
@@ -68,7 +70,7 @@ def test_python_call_context(engine):
 
 
 def test_python_comment_rejected(engine):
-    text = '# todo: replace api_key = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV"'
+    text = f'# todo: replace api_key = "{SYNTH_OPENAI_KEY_SHORT}"'
     engine.prepare_file("f", "python", text)
     start = text.index("sk-proj")
     result = engine.check("f", "python", "f.py", start, start + 10, PY_CONTEXTS)
@@ -76,7 +78,7 @@ def test_python_comment_rejected(engine):
 
 
 def test_python_docstring_rejected(engine):
-    text = '"""Docs: api_key = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV"\n"""'
+    text = f'"""Docs: api_key = "{SYNTH_OPENAI_KEY_SHORT}"\n"""'
     engine.prepare_file("f", "python", text)
     start = text.index("sk-proj")
     result = engine.check("f", "python", "f.py", start, start + 10, PY_CONTEXTS)
@@ -84,7 +86,7 @@ def test_python_docstring_rejected(engine):
 
 
 def test_js_variable_declarator(engine):
-    text = 'const apiKey = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH";'
+    text = f'const apiKey = "{SYNTH_OPENAI_KEY}";'
     engine.prepare_file("f", "javascript", text)
     start = text.index('"') + 1
     result = engine.check("f", "javascript", "f.js", start, start + 10, JS_CONTEXTS)
@@ -93,7 +95,7 @@ def test_js_variable_declarator(engine):
 
 
 def test_js_object_property(engine):
-    text = 'config = { openai: "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH" };'
+    text = f'config = {{ openai: "{SYNTH_OPENAI_KEY}" }};'
     engine.prepare_file("f", "javascript", text)
     start = text.index('"', text.index("openai"))
     result = engine.check("f", "javascript", "f.js", start, start + 10, JS_CONTEXTS)

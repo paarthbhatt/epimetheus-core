@@ -5,11 +5,12 @@ from __future__ import annotations
 import json
 
 import pytest
+from synth import SYNTH_OPENAI_KEY
 
 from epimetheus_core import cli
 
 RULES = "rules/secret_rules.json"
-SECRET_LINE = 'api_key = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH"'
+SECRET_LINE = f'api_key = "{SYNTH_OPENAI_KEY}"'
 
 
 @pytest.fixture()
@@ -23,7 +24,7 @@ def test_cli_scan_summary(capsys, target):
     out = capsys.readouterr().out
     assert code == 0
     assert "EPI-SEC-001" in out
-    assert "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH" not in out
+    assert SYNTH_OPENAI_KEY not in out
 
 
 def test_cli_scan_json(capsys, target):

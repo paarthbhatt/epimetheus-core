@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+from synth import SYNTH_OPENAI_KEY
+
 from epimetheus_core import __version__
 from epimetheus_core.findings import (
     FINDINGS_SCHEMA,
@@ -14,7 +16,7 @@ from epimetheus_core.findings import (
     to_sarif,
 )
 
-SECRET = "sk-proj-aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4cD5eF6gH"
+SECRET = SYNTH_OPENAI_KEY
 
 
 def _finding(**overrides) -> Finding:
