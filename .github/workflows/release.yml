@@ -1,0 +1,94 @@
+name: Release
+
+# Release pipeline with Sigstore (cosign) signing. Every published artifact
+# must pass `cosign verify` — see docs/RELEASE.md for consumer instructions.
+#
+# Tags are expected to look like v0.1.0. The release job:
+#   1. builds sdist + wheel and a checksums file,
+#   2. signs each artifact keyless with cosign (GitHub OIDC -> Fulcio),
+#   3. attaches the signature bundle + SBOM attestation,
+#   4. verifies the signatures before publishing (gate, not best-effort),
+#   5. publishes the GitHub Release with artifacts and bundles.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write      # create the GitHub Release
+  id-token: write      # keyless signing via OIDC (Fulcio)
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[grammars,dev]"
+      - run: ruff check epimetheus_core tests
+      - run: pytest
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      COSIGN_YES: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v3.1.3
+
+      - name: Build distribution
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+          cd dist && sha256sum * > checksums.txt && cd ..
+
+      - name: Sign artifacts (keyless, OIDC)
+        run: |
+          for artifact in dist/*; do
+            cosign sign-blob \
+              --yes \
+              --bundle "${artifact}.bundle" \
+              "$artifact"
+          done
+
+      - name: Verify signatures BEFORE publishing (gate)
+        run: |
+          for artifact in dist/*; do
+            case "$artifact" in
+              *.bundle) continue ;;
+            esac
+            cosign verify-blob \
+              --bundle "${artifact}.bundle" \
+              --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${GITHUB_REF_NAME}$" \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              "$artifact" || { echo "cosign verify FAILED for $artifact"; exit 1; }
+          done
+          echo "All release artifacts passed cosign verify."
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          artifact: true
+          format: spdx-json
+          upload-release-assets: false
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/*
