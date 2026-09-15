@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+.venv/
+venv/
+.tox/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Release signing material — never commit
+*.key
+*.pub
+*.bundle
+checksums.txt
+cosign.bundle
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
